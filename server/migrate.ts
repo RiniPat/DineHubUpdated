@@ -6,9 +6,11 @@ import { pool } from "./db";
  * This replaces drizzle-kit push for production deployments.
  */
 export async function runMigrations() {
-  const client = await pool.connect();
+  let client;
   try {
-    console.log("[migrate] Running safe schema migrations...");
+    console.log("[migrate] Connecting to database...");
+    client = await pool.connect();
+    console.log("[migrate] Connected. Running safe schema migrations...");
 
     // Create tables if they don't exist
     await client.query(`
@@ -89,6 +91,6 @@ export async function runMigrations() {
     console.error("[migrate] Migration error:", err);
     // Don't crash the server - the app can still work with existing schema
   } finally {
-    client.release();
+    if (client) client.release();
   }
 }

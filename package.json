@@ -53,7 +53,6 @@
     "cmdk": "^1.1.1",
     "connect-pg-simple": "^10.0.0",
     "date-fns": "^3.6.0",
-    "drizzle-kit": "^0.31.8",
     "drizzle-orm": "^0.39.3",
     "drizzle-zod": "^0.7.1",
     "embla-carousel-react": "^8.6.0",
@@ -109,7 +108,8 @@
     "@types/passport-local": "^1.0.38",
     "@types/react": "^18.3.11",
     "@types/react-dom": "^18.3.1",
-    "@types/ws": "^8.5.13"
+    "@types/ws": "^8.5.13",
+    "drizzle-kit": "^0.31.8"
   },
   "overrides": {
     "drizzle-kit": {
