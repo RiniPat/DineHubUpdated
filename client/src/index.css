@@ -1,0 +1,126 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Elegant, appetizing palette */
+  --font-sans: 'Outfit', sans-serif;
+  --font-display: 'Playfair Display', serif;
+
+  --background: 30 20% 99%;
+  --foreground: 20 15% 15%;
+
+  --card: 0 0% 100%;
+  --card-foreground: 20 15% 15%;
+
+  --popover: 0 0% 100%;
+  --popover-foreground: 20 15% 15%;
+
+  /* Premium Amber/Gold Primary */
+  --primary: 38 92% 50%;
+  --primary-foreground: 20 10% 10%;
+
+  /* Rich Terracotta Secondary */
+  --secondary: 15 75% 55%;
+  --secondary-foreground: 0 0% 100%;
+
+  --muted: 30 15% 94%;
+  --muted-foreground: 20 10% 40%;
+
+  --accent: 38 92% 95%;
+  --accent-foreground: 38 92% 30%;
+
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 0 0% 98%;
+
+  --border: 30 10% 90%;
+  --input: 30 10% 90%;
+  --ring: 38 92% 50%;
+
+  --radius: 1rem;
+}
+
+.dark {
+  --background: 20 10% 8%;
+  --foreground: 30 15% 95%;
+
+  --card: 20 10% 12%;
+  --card-foreground: 30 15% 95%;
+
+  --popover: 20 10% 12%;
+  --popover-foreground: 30 15% 95%;
+
+  --primary: 38 92% 50%;
+  --primary-foreground: 20 10% 10%;
+
+  --secondary: 15 75% 55%;
+  --secondary-foreground: 0 0% 100%;
+
+  --muted: 20 10% 15%;
+  --muted-foreground: 30 10% 70%;
+
+  --accent: 20 15% 15%;
+  --accent-foreground: 38 92% 50%;
+
+  --destructive: 0 62.8% 30.6%;
+  --destructive-foreground: 0 0% 98%;
+
+  --border: 20 10% 20%;
+  --input: 20 10% 20%;
+  --ring: 38 92% 50%;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-sans);
+    scroll-behavior: smooth;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+    @apply tracking-tight;
+  }
+}
+
+/* Custom Utilities for Premium Feel */
+.glass-panel {
+  @apply bg-white/70 backdrop-blur-xl border border-white/40 shadow-xl dark:bg-black/40 dark:border-white/10;
+}
+
+.glass-card {
+  @apply bg-white/60 backdrop-blur-md border border-white/50 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300 dark:bg-black/50 dark:border-white/10;
+}
+
+.text-gradient {
+  @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary;
+}
+
+.animate-in-up {
+  animation: in-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  opacity: 0;
+  transform: translateY(30px);
+}
+
+@keyframes in-up {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.text-balance {
+  text-wrap: balance;
+}
+
+.smooth-scroll::-webkit-scrollbar {
+  display: none;
+}
+.smooth-scroll {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
