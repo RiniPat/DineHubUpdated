@@ -549,101 +549,110 @@ Return a JSON object with this exact structure:
     }
   });
 
-  // Seeding - Demo restaurant for landing page
-  const existingDemo = await storage.getRestaurantBySlug("demo-bistro");
-  if (!existingDemo) {
-    const existingUser = await storage.getUserByUsername("admin");
-    const user = existingUser || await storage.createUser({ username: "admin", password: await bcrypt.hash("password", 10) });
+  // Seeding moved to separate function - called after server starts listening
+  return httpServer;
+}
 
-    const demoRestaurant = await storage.createRestaurant({
-      userId: user.id,
-      name: "The Golden Fork",
-      slug: "demo-bistro",
-      address: "Downtown Dubai, UAE",
-      cuisineType: "Mediterranean",
-      description: "A modern Mediterranean bistro serving fresh, vibrant dishes with a Middle Eastern twist.",
-      tableCount: 12,
-      whatsappNumber: "",
-    });
-    const demoMenu = await storage.createMenu({
-      restaurantId: demoRestaurant.id,
-      name: "Signature Menu",
-      description: "Our chef's handpicked selection of Mediterranean & Middle Eastern favorites",
-    });
-
-    const demoItems = [
-      { name: "Truffle Hummus", description: "Creamy chickpea hummus drizzled with truffle oil, served with warm pita.", price: "38.00", category: "Appetizer", imageUrl: "https://images.unsplash.com/photo-1577906096429-f73c2c312435?w=400&h=300&fit=crop", isBestseller: true },
-      { name: "Grilled Halloumi Salad", description: "Crispy halloumi over mixed greens with pomegranate and za'atar dressing.", price: "45.00", category: "Appetizer", imageUrl: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=400&h=300&fit=crop", isChefsPick: true },
-      { name: "Lamb Kibbeh", description: "Crispy fried lamb and bulgur croquettes with yogurt mint dip.", price: "42.00", category: "Appetizer", imageUrl: "https://images.unsplash.com/photo-1529692236671-f1f6cf9683ba?w=400&h=300&fit=crop" },
-      { name: "Seafood Risotto", description: "Arborio rice with prawns, calamari, and saffron broth. Finished with parmesan.", price: "95.00", category: "Main", imageUrl: "https://images.unsplash.com/photo-1476124369491-e7addf5db371?w=400&h=300&fit=crop", isBestseller: true },
-      { name: "Grilled Lamb Chops", description: "New Zealand lamb chops with rosemary jus, roasted vegetables, and mashed potato.", price: "120.00", category: "Main", imageUrl: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&h=300&fit=crop", isChefsPick: true },
-      { name: "Pan-Seared Salmon", description: "Atlantic salmon with lemon butter sauce, asparagus, and quinoa pilaf.", price: "98.00", category: "Main", imageUrl: "https://images.unsplash.com/photo-1485921325833-c519f76c4927?w=400&h=300&fit=crop" },
-      { name: "Chicken Shawarma Plate", description: "Marinated chicken with garlic sauce, pickles, fries, and fresh tabouleh.", price: "65.00", category: "Main", imageUrl: "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=400&h=300&fit=crop", isTodaysSpecial: true },
-      { name: "Truffle Mushroom Pasta", description: "Fresh pappardelle with wild mushroom ragout and shaved black truffle.", price: "85.00", category: "Main", imageUrl: "https://images.unsplash.com/photo-1473093295043-cdd812d0e601?w=400&h=300&fit=crop" },
-      { name: "Kunafa Cheesecake", description: "Fusion dessert blending crispy kunafa with creamy New York cheesecake.", price: "42.00", category: "Dessert", imageUrl: "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=400&h=300&fit=crop", isBestseller: true },
-      { name: "Pistachio Baklava", description: "Layers of golden phyllo pastry with crushed pistachios and rose syrup.", price: "35.00", category: "Dessert", imageUrl: "https://images.unsplash.com/photo-1558326567-98ae2405596b?w=400&h=300&fit=crop" },
-      { name: "Chocolate Lava Cake", description: "Warm chocolate fondant with vanilla bean ice cream and berry coulis.", price: "48.00", category: "Dessert", imageUrl: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=400&h=300&fit=crop", isChefsPick: true },
-      { name: "Fresh Mint Lemonade", description: "House-made lemonade with fresh mint leaves and a hint of rose water.", price: "22.00", category: "Drink", imageUrl: "https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?w=400&h=300&fit=crop" },
-      { name: "Turkish Coffee", description: "Traditional slow-brewed Turkish coffee served with dates.", price: "18.00", category: "Drink", imageUrl: "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=400&h=300&fit=crop" },
-      { name: "Mango Lassi", description: "Chilled yogurt smoothie with Alphonso mango and a touch of cardamom.", price: "25.00", category: "Drink", imageUrl: "https://images.unsplash.com/photo-1546173159-315724a31696?w=400&h=300&fit=crop", isTodaysSpecial: true },
-    ];
-
-    for (const item of demoItems) {
-      await storage.createMenuItem({
-        menuId: demoMenu.id,
-        name: item.name,
-        description: item.description,
-        price: item.price,
-        category: item.category,
-        imageUrl: item.imageUrl,
-        isAvailable: true,
-        isBestseller: item.isBestseller || false,
-        isChefsPick: item.isChefsPick || false,
-        isTodaysSpecial: item.isTodaysSpecial || false,
-      });
-    }
-  }
-
-  // Seed Top 10 Dubai Restaurants
-  for (const rest of dubaiRestaurants) {
-    const existing = await storage.getRestaurantBySlug(rest.slug);
-    if (!existing) {
+/** Seed demo data - called separately after server is up */
+export async function runSeeding() {
+  try {
+    // Seed demo restaurant
+    const existingDemo = await storage.getRestaurantBySlug("demo-bistro");
+    if (!existingDemo) {
       const existingUser = await storage.getUserByUsername("admin");
       const user = existingUser || await storage.createUser({ username: "admin", password: await bcrypt.hash("password", 10) });
 
-      const restaurant = await storage.createRestaurant({
+      const demoRestaurant = await storage.createRestaurant({
         userId: user.id,
-        name: rest.name,
-        slug: rest.slug,
-        address: rest.address,
-        cuisineType: rest.cuisineType,
-        description: rest.description,
-        tableCount: 20,
+        name: "The Golden Fork",
+        slug: "demo-bistro",
+        address: "Downtown Dubai, UAE",
+        cuisineType: "Mediterranean",
+        description: "A modern Mediterranean bistro serving fresh, vibrant dishes with a Middle Eastern twist.",
+        tableCount: 12,
         whatsappNumber: "",
       });
-
-      const menu = await storage.createMenu({
-        restaurantId: restaurant.id,
-        name: rest.menuName,
-        description: rest.menuDescription,
+      const demoMenu = await storage.createMenu({
+        restaurantId: demoRestaurant.id,
+        name: "Signature Menu",
+        description: "Our chef's handpicked selection of Mediterranean & Middle Eastern favorites",
       });
 
-      for (const item of rest.items) {
+      const demoItems = [
+        { name: "Truffle Hummus", description: "Creamy chickpea hummus drizzled with truffle oil, served with warm pita.", price: "38.00", category: "Appetizer", imageUrl: "https://images.unsplash.com/photo-1577906096429-f73c2c312435?w=400&h=300&fit=crop", isBestseller: true },
+        { name: "Grilled Halloumi Salad", description: "Crispy halloumi over mixed greens with pomegranate and za'atar dressing.", price: "45.00", category: "Appetizer", imageUrl: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=400&h=300&fit=crop", isChefsPick: true },
+        { name: "Lamb Kibbeh", description: "Crispy fried lamb and bulgur croquettes with yogurt mint dip.", price: "42.00", category: "Appetizer", imageUrl: "https://images.unsplash.com/photo-1529692236671-f1f6cf9683ba?w=400&h=300&fit=crop" },
+        { name: "Seafood Risotto", description: "Arborio rice with prawns, calamari, and saffron broth. Finished with parmesan.", price: "95.00", category: "Main", imageUrl: "https://images.unsplash.com/photo-1476124369491-e7addf5db371?w=400&h=300&fit=crop", isBestseller: true },
+        { name: "Grilled Lamb Chops", description: "New Zealand lamb chops with rosemary jus, roasted vegetables, and mashed potato.", price: "120.00", category: "Main", imageUrl: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&h=300&fit=crop", isChefsPick: true },
+        { name: "Pan-Seared Salmon", description: "Atlantic salmon with lemon butter sauce, asparagus, and quinoa pilaf.", price: "98.00", category: "Main", imageUrl: "https://images.unsplash.com/photo-1485921325833-c519f76c4927?w=400&h=300&fit=crop" },
+        { name: "Chicken Shawarma Plate", description: "Marinated chicken with garlic sauce, pickles, fries, and fresh tabouleh.", price: "65.00", category: "Main", imageUrl: "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=400&h=300&fit=crop", isTodaysSpecial: true },
+        { name: "Truffle Mushroom Pasta", description: "Fresh pappardelle with wild mushroom ragout and shaved black truffle.", price: "85.00", category: "Main", imageUrl: "https://images.unsplash.com/photo-1473093295043-cdd812d0e601?w=400&h=300&fit=crop" },
+        { name: "Kunafa Cheesecake", description: "Fusion dessert blending crispy kunafa with creamy New York cheesecake.", price: "42.00", category: "Dessert", imageUrl: "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=400&h=300&fit=crop", isBestseller: true },
+        { name: "Pistachio Baklava", description: "Layers of golden phyllo pastry with crushed pistachios and rose syrup.", price: "35.00", category: "Dessert", imageUrl: "https://images.unsplash.com/photo-1558326567-98ae2405596b?w=400&h=300&fit=crop" },
+        { name: "Chocolate Lava Cake", description: "Warm chocolate fondant with vanilla bean ice cream and berry coulis.", price: "48.00", category: "Dessert", imageUrl: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=400&h=300&fit=crop", isChefsPick: true },
+        { name: "Fresh Mint Lemonade", description: "House-made lemonade with fresh mint leaves and a hint of rose water.", price: "22.00", category: "Drink", imageUrl: "https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?w=400&h=300&fit=crop" },
+        { name: "Turkish Coffee", description: "Traditional slow-brewed Turkish coffee served with dates.", price: "18.00", category: "Drink", imageUrl: "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=400&h=300&fit=crop" },
+        { name: "Mango Lassi", description: "Chilled yogurt smoothie with Alphonso mango and a touch of cardamom.", price: "25.00", category: "Drink", imageUrl: "https://images.unsplash.com/photo-1546173159-315724a31696?w=400&h=300&fit=crop", isTodaysSpecial: true },
+      ];
+
+      for (const item of demoItems) {
         await storage.createMenuItem({
-          menuId: menu.id,
+          menuId: demoMenu.id,
           name: item.name,
           description: item.description,
           price: item.price,
           category: item.category,
+          imageUrl: item.imageUrl,
           isAvailable: true,
-          isBestseller: (item as any).isBestseller || false,
-          isChefsPick: (item as any).isChefsPick || false,
-          isTodaysSpecial: (item as any).isTodaysSpecial || false,
+          isBestseller: item.isBestseller || false,
+          isChefsPick: item.isChefsPick || false,
+          isTodaysSpecial: item.isTodaysSpecial || false,
         });
       }
-      console.log(`Seeded: ${rest.name}`);
+      console.log("Seeded: The Golden Fork (demo)");
     }
-  }
 
-  return httpServer;
+    // Seed Top 10 Dubai Restaurants
+    for (const rest of dubaiRestaurants) {
+      const existing = await storage.getRestaurantBySlug(rest.slug);
+      if (!existing) {
+        const existingUser = await storage.getUserByUsername("admin");
+        const user = existingUser || await storage.createUser({ username: "admin", password: await bcrypt.hash("password", 10) });
+
+        const restaurant = await storage.createRestaurant({
+          userId: user.id,
+          name: rest.name,
+          slug: rest.slug,
+          address: rest.address,
+          cuisineType: rest.cuisineType,
+          description: rest.description,
+          tableCount: 20,
+          whatsappNumber: "",
+        });
+
+        const menu = await storage.createMenu({
+          restaurantId: restaurant.id,
+          name: rest.menuName,
+          description: rest.menuDescription,
+        });
+
+        for (const item of rest.items) {
+          await storage.createMenuItem({
+            menuId: menu.id,
+            name: item.name,
+            description: item.description,
+            price: item.price,
+            category: item.category,
+            isAvailable: true,
+            isBestseller: (item as any).isBestseller || false,
+            isChefsPick: (item as any).isChefsPick || false,
+            isTodaysSpecial: (item as any).isTodaysSpecial || false,
+          });
+        }
+        console.log(`Seeded: ${rest.name}`);
+      }
+    }
+  } catch (err) {
+    console.error("[seed] Seeding error (server still running):", err);
+  }
 }

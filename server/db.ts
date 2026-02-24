@@ -5,13 +5,12 @@ import * as schema from "@shared/schema";
 const { Pool } = pg;
 
 if (!process.env.DATABASE_URL) {
-  throw new Error(
-    "DATABASE_URL must be set. Did you forget to provision a database?",
-  );
+  console.error("WARNING: DATABASE_URL is not set. Database operations will fail.");
+  console.error("On Railway: Add a PostgreSQL plugin to auto-set DATABASE_URL.");
 }
 
 const isProduction = process.env.NODE_ENV === "production";
-const databaseUrl = process.env.DATABASE_URL;
+const databaseUrl = process.env.DATABASE_URL || "";
 
 export const pool = new Pool({
   connectionString: databaseUrl,
