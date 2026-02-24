@@ -2,33 +2,6 @@ import { build as esbuild } from "esbuild";
 import { build as viteBuild } from "vite";
 import { rm, readFile } from "fs/promises";
 
-const allowlist = [
-  "@google/generative-ai",
-  "axios",
-  "bcryptjs",
-  "connect-pg-simple",
-  "cors",
-  "date-fns",
-  "express",
-  "express-rate-limit",
-  "express-session",
-  "jsonwebtoken",
-  "memorystore",
-  "multer",
-  "nanoid",
-  "nodemailer",
-  "qrcode",
-  "openai",
-  "passport",
-  "passport-local",
-  "stripe",
-  "uuid",
-  "ws",
-  "xlsx",
-  "zod",
-  "zod-validation-error",
-];
-
 async function buildAll() {
   await rm("dist", { recursive: true, force: true });
 
@@ -37,11 +10,12 @@ async function buildAll() {
 
   console.log("building server...");
   const pkg = JSON.parse(await readFile("package.json", "utf-8"));
+  // Mark ALL npm packages as external — they'll load from node_modules at runtime.
+  // Only our own source code (server/*, shared/*) gets bundled.
   const allDeps = [
     ...Object.keys(pkg.dependencies || {}),
     ...Object.keys(pkg.devDependencies || {}),
   ];
-  const externals = allDeps.filter((dep) => !allowlist.includes(dep));
 
   await esbuild({
     entryPoints: ["server/index.ts"],
@@ -56,7 +30,7 @@ async function buildAll() {
       "@shared": "./shared",
     },
     minify: true,
-    external: externals,
+    external: allDeps,
     logLevel: "info",
   });
 }
