@@ -9,10 +9,17 @@ import OpenAI from "openai";
 import Anthropic from "@anthropic-ai/sdk";
 import { dubaiRestaurants } from "./dubai-restaurants";
 import QRCode from "qrcode";
+import bcrypt from "bcryptjs";
 import multer from "multer";
 import mammoth from "mammoth";
 
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
+
+/** Strip password from user objects before sending to client */
+function sanitizeUser(user: { id: number; username: string; password: string }) {
+  const { password, ...safe } = user;
+  return safe;
+}
 
 let openaiClient: OpenAI | null = null;
 function getOpenAI(): OpenAI {
@@ -76,9 +83,12 @@ export async function registerRoutes(
       if (existingUser) {
         return res.status(400).json({ message: "Username already exists" });
       }
-      const user = await storage.createUser(input);
+      const user = await storage.createUser({
+        ...input,
+        password: await bcrypt.hash(input.password, 10),
+      });
       (req.session as any).userId = user.id;
-      res.status(201).json(user);
+      res.status(201).json(sanitizeUser(user));
     } catch (err) {
       if (err instanceof z.ZodError) res.status(400).json({ message: err.errors[0].message });
       else res.status(500).json({ message: "Internal Server Error" });
@@ -89,11 +99,11 @@ export async function registerRoutes(
     try {
       const input = api.auth.login.input.parse(req.body);
       const user = await storage.getUserByUsername(input.username);
-      if (!user || user.password !== input.password) {
+      if (!user || !(await bcrypt.compare(input.password, user.password))) {
         return res.status(401).json({ message: "Invalid credentials" });
       }
       (req.session as any).userId = user.id;
-      res.json(user);
+      res.json(sanitizeUser(user));
     } catch (err) {
       res.status(500).json({ message: "Internal Server Error" });
     }
@@ -108,7 +118,7 @@ export async function registerRoutes(
   app.get(api.auth.me.path, async (req, res) => {
     if (!(req.session as any).userId) return res.status(401).json(null);
     const user = await storage.getUser((req.session as any).userId);
-    res.json(user || null);
+    res.json(user ? sanitizeUser(user) : null);
   });
 
   // Restaurant Routes
@@ -543,7 +553,7 @@ Return a JSON object with this exact structure:
   const existingDemo = await storage.getRestaurantBySlug("demo-bistro");
   if (!existingDemo) {
     const existingUser = await storage.getUserByUsername("admin");
-    const user = existingUser || await storage.createUser({ username: "admin", password: "password" });
+    const user = existingUser || await storage.createUser({ username: "admin", password: await bcrypt.hash("password", 10) });
 
     const demoRestaurant = await storage.createRestaurant({
       userId: user.id,
@@ -599,7 +609,7 @@ Return a JSON object with this exact structure:
     const existing = await storage.getRestaurantBySlug(rest.slug);
     if (!existing) {
       const existingUser = await storage.getUserByUsername("admin");
-      const user = existingUser || await storage.createUser({ username: "admin", password: "password" });
+      const user = existingUser || await storage.createUser({ username: "admin", password: await bcrypt.hash("password", 10) });
 
       const restaurant = await storage.createRestaurant({
         userId: user.id,

@@ -85,7 +85,8 @@ function DemoMenuPreview() {
 }
 
 export default function Landing() {
-  <div className="min-h-screen bg-white relative overflow-hidden">
+  return (
+    <div className="min-h-screen bg-white relative overflow-hidden">
     {/* Decorative background blur */}
     <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/10 rounded-full filter blur-[100px] pointer-events-none" />
     <div className="absolute top-[20%] right-[-10%] w-[30%] h-[40%] bg-secondary/10 rounded-full filter blur-[120px] pointer-events-none delay-1000" />
